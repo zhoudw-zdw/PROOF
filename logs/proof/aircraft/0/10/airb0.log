@@ -1,0 +1,125 @@
+2024-10-12 13:54:05,737 [trainer.py] => config: ./exps/air.json
+2024-10-12 13:54:05,737 [trainer.py] => prefix: -
+2024-10-12 13:54:05,737 [trainer.py] => dataset: aircraft
+2024-10-12 13:54:05,737 [trainer.py] => memory_size: 2000
+2024-10-12 13:54:05,738 [trainer.py] => memory_per_class: 20
+2024-10-12 13:54:05,738 [trainer.py] => fixed_memory: True
+2024-10-12 13:54:05,738 [trainer.py] => shuffle: True
+2024-10-12 13:54:05,738 [trainer.py] => init_cls: 10
+2024-10-12 13:54:05,738 [trainer.py] => increment: 10
+2024-10-12 13:54:05,738 [trainer.py] => model_name: proof
+2024-10-12 13:54:05,738 [trainer.py] => convnet_type: clip
+2024-10-12 13:54:05,738 [trainer.py] => device: [device(type='cuda', index=1)]
+2024-10-12 13:54:05,738 [trainer.py] => seed: 1993
+2024-10-12 13:54:05,738 [trainer.py] => projection_type: pure_mlp
+2024-10-12 13:54:05,738 [trainer.py] => frozen_layers: visual
+2024-10-12 13:54:05,738 [trainer.py] => tuned_epoch: 10
+2024-10-12 13:54:05,738 [trainer.py] => init_lr: 0.001
+2024-10-12 13:54:05,738 [trainer.py] => batch_size: 64
+2024-10-12 13:54:05,738 [trainer.py] => weight_decay: 0.05
+2024-10-12 13:54:05,738 [trainer.py] => min_lr: 0
+2024-10-12 13:54:05,738 [trainer.py] => optimizer: sgd
+2024-10-12 13:54:05,772 [data_manager.py] => [68, 56, 78, 8, 23, 84, 90, 65, 74, 76, 40, 89, 3, 92, 55, 9, 26, 80, 43, 38, 58, 70, 77, 1, 85, 19, 17, 50, 28, 53, 13, 81, 45, 82, 6, 59, 83, 16, 15, 44, 91, 41, 72, 60, 79, 52, 20, 10, 31, 54, 37, 95, 14, 71, 96, 98, 97, 2, 64, 66, 42, 22, 35, 86, 24, 34, 87, 21, 99, 0, 88, 27, 18, 94, 11, 12, 47, 25, 30, 46, 62, 69, 36, 61, 7, 63, 75, 5, 32, 4, 51, 48, 73, 93, 39, 67, 29, 49, 57, 33]
+2024-10-12 13:54:07,372 [factory.py] => Loaded ViT-B-16 model config.
+2024-10-12 13:54:10,217 [factory.py] => Loaded ViT-B-16 model config.
+2024-10-12 13:54:12,376 [trainer.py] => All params: 150670849
+2024-10-12 13:54:12,378 [trainer.py] => Trainable params: 150670849
+2024-10-12 13:54:12,556 [proof.py] => Learning on 0-10
+2024-10-12 13:55:10,273 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 13:55:48,605 [proof.py] => Exemplar size: 200
+2024-10-12 13:55:48,605 [trainer.py] => CNN: {'total': 83.04, '00-09': 83.04, 'old': 0, 'new': 83.04, 'harmonic': 0.0}
+2024-10-12 13:55:48,605 [trainer.py] => CNN top1 curve: [83.04]
+2024-10-12 13:55:48,605 [trainer.py] => CNN top5 curve: [99.7]
+
+2024-10-12 13:55:48,605 [trainer.py] => Average Accuracy (CNN): 83.04
+2024-10-12 13:55:48,606 [trainer.py] => All params: 151197697
+2024-10-12 13:55:48,607 [trainer.py] => Trainable params: 1576961
+2024-10-12 13:55:48,612 [proof.py] => Learning on 10-20
+2024-10-12 13:57:00,328 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 13:57:51,739 [proof.py] => Exemplar size: 400
+2024-10-12 13:57:51,740 [trainer.py] => CNN: {'total': 74.18, '00-09': 70.54, '10-19': 77.84, 'old': 70.54, 'new': 77.84, 'harmonic': 74.01}
+2024-10-12 13:57:51,740 [trainer.py] => CNN top1 curve: [83.04, 74.18]
+2024-10-12 13:57:51,740 [trainer.py] => CNN top5 curve: [99.7, 97.61]
+
+2024-10-12 13:57:51,741 [trainer.py] => Average Accuracy (CNN): 78.61000000000001
+2024-10-12 13:57:51,742 [trainer.py] => All params: 151724545
+2024-10-12 13:57:51,743 [trainer.py] => Trainable params: 1839617
+2024-10-12 13:57:51,749 [proof.py] => Learning on 20-30
+2024-10-12 13:59:10,643 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:00:00,004 [proof.py] => Exemplar size: 600
+2024-10-12 14:00:00,004 [trainer.py] => CNN: {'total': 68.73, '00-09': 71.43, '10-19': 61.68, '20-29': 73.05, 'old': 66.57, 'new': 73.05, 'harmonic': 69.66}
+2024-10-12 14:00:00,004 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73]
+2024-10-12 14:00:00,004 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31]
+
+2024-10-12 14:00:00,004 [trainer.py] => Average Accuracy (CNN): 75.31666666666668
+2024-10-12 14:00:00,006 [trainer.py] => All params: 152251393
+2024-10-12 14:00:00,007 [trainer.py] => Trainable params: 2102273
+2024-10-12 14:00:00,015 [proof.py] => Learning on 30-40
+2024-10-12 14:01:34,325 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:02:29,732 [proof.py] => Exemplar size: 800
+2024-10-12 14:02:29,733 [trainer.py] => CNN: {'total': 65.82, '00-09': 68.45, '10-19': 57.19, '20-29': 63.77, '30-39': 73.87, 'old': 63.15, 'new': 73.87, 'harmonic': 68.09}
+2024-10-12 14:02:29,733 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82]
+2024-10-12 14:02:29,733 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39]
+
+2024-10-12 14:02:29,733 [trainer.py] => Average Accuracy (CNN): 72.94250000000001
+2024-10-12 14:02:29,734 [trainer.py] => All params: 152778241
+2024-10-12 14:02:29,735 [trainer.py] => Trainable params: 2364929
+2024-10-12 14:02:29,740 [proof.py] => Learning on 40-50
+2024-10-12 14:04:13,335 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:05:16,933 [proof.py] => Exemplar size: 1000
+2024-10-12 14:05:16,933 [trainer.py] => CNN: {'total': 64.41, '00-09': 68.45, '10-19': 59.58, '20-29': 55.99, '30-39': 70.27, '40-49': 67.77, 'old': 63.58, 'new': 67.77, 'harmonic': 65.61}
+2024-10-12 14:05:16,933 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82, 64.41]
+2024-10-12 14:05:16,933 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39, 92.21]
+
+2024-10-12 14:05:16,933 [trainer.py] => Average Accuracy (CNN): 71.23600000000002
+2024-10-12 14:05:16,935 [trainer.py] => All params: 153305089
+2024-10-12 14:05:16,937 [trainer.py] => Trainable params: 2627585
+2024-10-12 14:05:16,944 [proof.py] => Learning on 50-60
+2024-10-12 14:07:07,445 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:08:19,013 [proof.py] => Exemplar size: 1200
+2024-10-12 14:08:19,014 [trainer.py] => CNN: {'total': 60.88, '00-09': 54.76, '10-19': 53.29, '20-29': 56.29, '30-39': 66.67, '40-49': 66.27, '50-59': 68.06, 'old': 59.44, 'new': 68.06, 'harmonic': 63.46}
+2024-10-12 14:08:19,014 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82, 64.41, 60.88]
+2024-10-12 14:08:19,014 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39, 92.21, 90.32]
+
+2024-10-12 14:08:19,015 [trainer.py] => Average Accuracy (CNN): 69.51
+2024-10-12 14:08:19,018 [trainer.py] => All params: 153831937
+2024-10-12 14:08:19,021 [trainer.py] => Trainable params: 2890241
+2024-10-12 14:08:19,027 [proof.py] => Learning on 60-70
+2024-10-12 14:10:44,270 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:12:11,045 [proof.py] => Exemplar size: 1400
+2024-10-12 14:12:11,046 [trainer.py] => CNN: {'total': 59.72, '00-09': 56.85, '10-19': 54.79, '20-29': 51.8, '30-39': 64.86, '40-49': 68.98, '50-59': 68.36, '60-69': 52.41, 'old': 60.93, 'new': 52.41, 'harmonic': 56.35}
+2024-10-12 14:12:11,046 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82, 64.41, 60.88, 59.72]
+2024-10-12 14:12:11,046 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39, 92.21, 90.32, 88.78]
+
+2024-10-12 14:12:11,046 [trainer.py] => Average Accuracy (CNN): 68.11142857142859
+2024-10-12 14:12:11,047 [trainer.py] => All params: 154358785
+2024-10-12 14:12:11,049 [trainer.py] => Trainable params: 3152897
+2024-10-12 14:12:11,055 [proof.py] => Learning on 70-80
+2024-10-12 14:14:38,061 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:16:12,870 [proof.py] => Exemplar size: 1600
+2024-10-12 14:16:12,871 [trainer.py] => CNN: {'total': 58.1, '00-09': 59.82, '10-19': 53.89, '20-29': 53.59, '30-39': 59.16, '40-49': 66.57, '50-59': 68.06, '60-69': 49.1, '70-79': 54.52, 'old': 58.6, 'new': 54.52, 'harmonic': 56.49}
+2024-10-12 14:16:12,871 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82, 64.41, 60.88, 59.72, 58.1]
+2024-10-12 14:16:12,871 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39, 92.21, 90.32, 88.78, 86.13]
+
+2024-10-12 14:16:12,871 [trainer.py] => Average Accuracy (CNN): 66.86000000000001
+2024-10-12 14:16:12,874 [trainer.py] => All params: 154885633
+2024-10-12 14:16:12,875 [trainer.py] => Trainable params: 3415553
+2024-10-12 14:16:12,881 [proof.py] => Learning on 80-90
+2024-10-12 14:18:57,545 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:20:35,656 [proof.py] => Exemplar size: 1800
+2024-10-12 14:20:35,656 [trainer.py] => CNN: {'total': 55.41, '00-09': 54.17, '10-19': 53.29, '20-29': 51.8, '30-39': 55.56, '40-49': 60.24, '50-59': 66.87, '60-69': 45.78, '70-79': 49.7, '80-89': 61.26, 'old': 54.69, 'new': 61.26, 'harmonic': 57.79}
+2024-10-12 14:20:35,656 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82, 64.41, 60.88, 59.72, 58.1, 55.41]
+2024-10-12 14:20:35,656 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39, 92.21, 90.32, 88.78, 86.13, 85.34]
+
+2024-10-12 14:20:35,656 [trainer.py] => Average Accuracy (CNN): 65.58777777777779
+2024-10-12 14:20:35,658 [trainer.py] => All params: 155412481
+2024-10-12 14:20:35,659 [trainer.py] => Trainable params: 3678209
+2024-10-12 14:20:35,665 [proof.py] => Learning on 90-100
+2024-10-12 14:23:27,096 [base.py] => Constructing exemplars for new classes...(20 per classes)
+2024-10-12 14:25:16,357 [proof.py] => Exemplar size: 2000
+2024-10-12 14:25:16,357 [trainer.py] => CNN: {'total': 55.81, '00-09': 55.65, '10-19': 52.1, '20-29': 43.41, '30-39': 57.96, '40-49': 59.94, '50-59': 62.99, '60-69': 41.57, '70-79': 48.19, '80-89': 57.66, '90-99': 78.61, 'old': 53.28, 'new': 78.61, 'harmonic': 63.51}
+2024-10-12 14:25:16,357 [trainer.py] => CNN top1 curve: [83.04, 74.18, 68.73, 65.82, 64.41, 60.88, 59.72, 58.1, 55.41, 55.81]
+2024-10-12 14:25:16,358 [trainer.py] => CNN top5 curve: [99.7, 97.61, 96.31, 94.39, 92.21, 90.32, 88.78, 86.13, 85.34, 85.57]
+
+2024-10-12 14:25:16,358 [trainer.py] => Average Accuracy (CNN): 64.61000000000001
+

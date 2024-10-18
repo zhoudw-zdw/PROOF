@@ -6,30 +6,29 @@ from convs.linears import SimpleLinear, SplitCosineLinear, CosineLinear
 import timm
 import torch.nn.functional as F
 from convs.projections import Proj_Pure_MLP, MultiHeadAttention
-
 from utils.toolkit import get_attribute
+
 def get_convnet(args, pretrained=False):
 
     backbone_name = args["convnet_type"].lower()
     algorithm_name = args["model_name"].lower()
-
     if 'clip' in backbone_name:
         print('Using CLIP model as the backbone')
         import open_clip
         if backbone_name == 'clip':
             model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-16', pretrained='laion400m_e32')
             tokenizer = open_clip.get_tokenizer('ViT-B-16')
-            model.out_dim=512
+            model.out_dim = 512
             return model, preprocess, tokenizer
         elif backbone_name=='clip_laion2b':
             model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-16', pretrained='laion2b_s34b_b88k')
             tokenizer = open_clip.get_tokenizer('ViT-B-16')
-            model.out_dim=512
+            model.out_dim = 512
             return model, preprocess, tokenizer
         elif backbone_name=='openai_clip':
             model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-16', pretrained='openai')
             tokenizer = open_clip.get_tokenizer('ViT-B-16')
-            model.out_dim=512
+            model.out_dim = 512
             return model, preprocess, tokenizer
         else:
             raise NotImplementedError("Unknown type {}".format(backbone_name))
@@ -328,8 +327,8 @@ class SimpleClipNet(BaseNet):
         super().__init__(args, pretrained)
 
         self.convnet, self.preprocess, self.tokenizer = get_convnet(args, pretrained)
-        self.class_name='SimpleClipNet'
-        self.args=args
+        self.class_name = 'SimpleClipNet'
+        self.args = args
 
 
     def update_fc(self, nb_classes, nextperiod_initialization=None):
@@ -374,51 +373,55 @@ class Proof_Net(SimpleClipNet):
         super().__init__(args, pretrained)
         self.projs_img = nn.ModuleList()
         self.projs_text = nn.ModuleList()
-        self.args=args
+        self.args = args
+        self._device = args["device"][0]
+        self.projtype = get_attribute(self.args, 'projection_type', 'mlp')
+        self.context_prompt_length_per_task = get_attribute(self.args, 'context_prompt_length_per_task', 3)
         
-        self.projtype=get_attribute(self.args,'projection_type','mlp')
-        self.context_prompt_length_per_task=get_attribute(self.args,'context_prompt_length_per_task',3)
-        
-        self.sel_attn=MultiHeadAttention(1, self.feature_dim, self.feature_dim, self.feature_dim, dropout=0.1)
-        self.img_prototypes=None
+        self.sel_attn = MultiHeadAttention(1, self.feature_dim, self.feature_dim, self.feature_dim, dropout=0.1)
+        self.img_prototypes = None
 
-        self.context_prompts=nn.ParameterList()
+        self.context_prompts = nn.ParameterList()
 
     def update_prototype(self, nb_classes):
         if self.img_prototypes is not None:
             nb_output = len(self.img_prototypes)
-            self.img_prototypes = torch.cat([copy.deepcopy(self.img_prototypes), torch.zeros(nb_classes - nb_output, self.feature_dim).cuda()])
+            self.img_prototypes = torch.cat([copy.deepcopy(self.img_prototypes).to(self._device), torch.zeros(nb_classes - nb_output, self.feature_dim).to(self._device)]).to(self._device)
         else:
-            self.img_prototypes = torch.zeros(nb_classes,self.feature_dim).cuda()
+            self.img_prototypes = torch.zeros(nb_classes, self.feature_dim).to(self._device)
         print('update prototype, now we have {} prototypes'.format(self.img_prototypes.shape[0]))
     
     def update_context_prompt(self):
         for i in range(len(self.context_prompts)):
-            self.context_prompts[i].requires_grad=False
-        self.context_prompts.append(nn.Parameter(torch.randn(self.context_prompt_length_per_task, self.feature_dim).cuda()))
-        print('update context prompt, now we have {} context prompts'.format(len(self.context_prompts)*self.context_prompt_length_per_task))
+            self.context_prompts[i].requires_grad = False
+        self.context_prompts.append(nn.Parameter(torch.randn(self.context_prompt_length_per_task, self.feature_dim).to(self._device)))
+        print('update context prompt, now we have {} context prompts'.format(len(self.context_prompts) * self.context_prompt_length_per_task))
+        self.context_prompts.to(self._device)
     
     def get_context_prompts(self):
         return torch.cat([item for item in self.context_prompts], dim=0)
 
     def encode_image(self, x, normalize: bool = False):
-        basic_img_features=self.convnet.encode_image(x)
+        x = x.to(self._device)
+        basic_img_features = self.convnet.encode_image(x)
         img_features = [proj(basic_img_features) for proj in self.projs_img]
-        img_features=torch.stack(img_features, dim=1)
-        image_feas=torch.sum(img_features, dim=1)
+        img_features = torch.stack(img_features, dim=1)#[bs,num_proj,dim]
+        image_feas = torch.sum(img_features, dim=1)#[bs,dim]
         return F.normalize(image_feas, dim=-1) if normalize else image_feas
         
     def encode_text(self, x, normalize: bool = False):
-        basic_text_features=self.convnet.encode_text(x)
+        x = x.to(self._device)
+        basic_text_features = self.convnet.encode_text(x)
         text_features = [proj(basic_text_features) for proj in self.projs_text]
-        text_features=torch.stack(text_features, dim=1)
-        text_feas=torch.sum(text_features, dim=1)
+        text_features = torch.stack(text_features, dim=1)
+        text_feas = torch.sum(text_features, dim=1) #[bs,dim]
         return F.normalize(text_feas, dim=-1) if normalize else text_feas
         
     def encode_prototpyes(self, normalize: bool = False):
+        self.img_prototypes=self.img_prototypes.to(self._device)
         img_features = [proj(self.img_prototypes) for proj in self.projs_img]
-        img_features=torch.stack(img_features, dim=1)
-        image_feas=torch.sum(img_features, dim=1)
+        img_features=torch.stack(img_features, dim=1)#[nb_class,num_proj,dim]
+        image_feas=torch.sum(img_features, dim=1)#[nb_class,dim]
         return F.normalize(image_feas, dim=-1) if normalize else image_feas
 
     def extend_task(self):
@@ -427,29 +430,29 @@ class Proof_Net(SimpleClipNet):
 
     def extend_item(self):
         if self.projtype=='pure_mlp':
-            return Proj_Pure_MLP(self.feature_dim,self.feature_dim,self.feature_dim)
+            return Proj_Pure_MLP(self.feature_dim,self.feature_dim,self.feature_dim).to(self._device)
         else:
             raise NotImplementedError
     
     def forward(self, image, text):
-        image_features = self.encode_image(image, normalize=True)
-        text_features = self.encode_text(text, normalize=True)
+        image_features = self.encode_image(image, normalize=True)#bs,dim
+        text_features = self.encode_text(text, normalize=True)#bs,dim
 
-        prototype_features = self.encode_prototpyes(normalize=True)
-        context_prompts=self.get_context_prompts()
+        prototype_features = self.encode_prototpyes(normalize=True) #nb_class,dim
+        context_prompts=self.get_context_prompts() # num_prompt, dim
 
         len_texts=text_features.shape[0]
         len_protos=prototype_features.shape[0]
         len_context_prompts=context_prompts.shape[0]
         # restack the features and pass them through the attention layer
-        image_features = image_features.view(image_features.shape[0], -1, self.feature_dim)
-        text_features = text_features.view(text_features.shape[0], self.feature_dim)
-        prototype_features = prototype_features.view(prototype_features.shape[0], self.feature_dim)
-        context_prompts = context_prompts.view(context_prompts.shape[0], self.feature_dim)
+        image_features = image_features.view(image_features.shape[0], -1, self.feature_dim)#bs,1,dim
+        text_features = text_features.view(text_features.shape[0], self.feature_dim)#num_text,dim
+        prototype_features = prototype_features.view(prototype_features.shape[0], self.feature_dim)#len_proto,dim
+        context_prompts = context_prompts.view(context_prompts.shape[0], self.feature_dim)#len_con,dim
         # expand text features to be the same dim as image features
-        text_features = text_features.expand(image_features.shape[0], text_features.shape[0], self.feature_dim)
-        prototype_features = prototype_features.expand(image_features.shape[0], prototype_features.shape[0], self.feature_dim)
-        context_prompts = context_prompts.expand(image_features.shape[0], context_prompts.shape[0], self.feature_dim)
+        text_features = text_features.expand(image_features.shape[0], text_features.shape[0], self.feature_dim)#bs,num_text,dim
+        prototype_features = prototype_features.expand(image_features.shape[0], prototype_features.shape[0], self.feature_dim)#bs,len_proto,dim
+        context_prompts = context_prompts.expand(image_features.shape[0], context_prompts.shape[0], self.feature_dim)#bs,len_con,dim
         # concat them together
         # features = torch.cat([image_features, text_features, prototype_features], dim=1) # bsize * (1+num_texts+num_protos) * dim
         features = torch.cat([image_features, text_features, prototype_features, context_prompts], dim=1) # bsize * (1+num_texts+num_protos+num_context) * dim
@@ -473,19 +476,19 @@ class Proof_Net(SimpleClipNet):
     def forward_transformer(self, image_features, text_features, transformer=False):
         prototype_features = self.encode_prototpyes(normalize=True)
         if transformer:
-            context_prompts=self.get_context_prompts()
-            len_texts=text_features.shape[0]
-            len_protos=prototype_features.shape[0]
-            len_context_prompts=context_prompts.shape[0]
+            context_prompts = self.get_context_prompts()
+            len_texts = text_features.shape[0]
+            len_protos = prototype_features.shape[0]
+            len_context_prompts = context_prompts.shape[0]
             # restack the features and pass them through the attention layer
-            image_features = image_features.view(image_features.shape[0], -1, self.feature_dim)
-            text_features = text_features.view(text_features.shape[0], self.feature_dim)
-            prototype_features = prototype_features.view(prototype_features.shape[0], self.feature_dim)
-            context_prompts = context_prompts.view(context_prompts.shape[0], self.feature_dim)
+            image_features = image_features.view(image_features.shape[0], -1, self.feature_dim) #[bs, 1, dim]
+            text_features = text_features.view(text_features.shape[0], self.feature_dim) #[total_classes, dim]
+            prototype_features = prototype_features.view(prototype_features.shape[0], self.feature_dim) #[len_pro, dim]
+            context_prompts = context_prompts.view(context_prompts.shape[0], self.feature_dim) #[len_con_pro, dim]
             # expand text features to be the same dim as image features
-            text_features = text_features.expand(image_features.shape[0], text_features.shape[0], self.feature_dim)
-            prototype_features = prototype_features.expand(image_features.shape[0], prototype_features.shape[0], self.feature_dim)
-            context_prompts = context_prompts.expand(image_features.shape[0], context_prompts.shape[0], self.feature_dim)
+            text_features = text_features.expand(image_features.shape[0], text_features.shape[0], self.feature_dim) #[bs, total_classes, dim]
+            prototype_features = prototype_features.expand(image_features.shape[0], prototype_features.shape[0], self.feature_dim) #[bs, len_pro, dim]
+            context_prompts = context_prompts.expand(image_features.shape[0], context_prompts.shape[0], self.feature_dim) #[bs, len_con_pro, dim]
             # concat them together
             # features = torch.cat([image_features, text_features, prototype_features], dim=1) # bsize * (1+num_texts+num_protos) * dim
             features = torch.cat([image_features, text_features, prototype_features, context_prompts], dim=1) # bsize * (1+num_texts+num_protos+num_context) * dim

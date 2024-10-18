@@ -9,7 +9,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from utils.inc_net import  Proof_Net
 from models.base import BaseLearner
-from utils.toolkit import tensor2numpy,get_attribute,ClipLoss
+from utils.toolkit import tensor2numpy, get_attribute, ClipLoss
 from utils.data_manager import LaionData
 import math
 import matplotlib.pyplot as plt
@@ -25,15 +25,16 @@ class Learner(BaseLearner):
         self._train_transformer=False
         self._network = Proof_Net(args, False)
         
-        self.batch_size= get_attribute(args,"batch_size", 48)
-        self.init_lr= get_attribute(args,"init_lr", 0.01)
-        self.weight_decay=  get_attribute(args,"weight_decay", 0.0005)
-        self.min_lr=  get_attribute(args,"min_lr", 1e-8)
-        self.frozen_layers=  get_attribute(args,"frozen_layers", None)
+        self.batch_size = get_attribute(args,"batch_size", 48)
+        self.init_lr = get_attribute(args, "init_lr", 0.01)
+        self.weight_decay = get_attribute(args, "weight_decay", 0.0005)
+        self.min_lr = get_attribute(args, "min_lr", 1e-8)
+        self.frozen_layers = get_attribute(args, "frozen_layers", None)
         
-        self.tuned_epoch =  get_attribute(args,"tuned_epoch", 5)
+        self.tuned_epoch = get_attribute(args, "tuned_epoch", 5)
         
         self._known_classes = 0
+        self.use_cos = get_attribute(args, "use_cos", False)
 
     def after_task(self):
         self._known_classes = self._total_classes
@@ -46,8 +47,8 @@ class Learner(BaseLearner):
         with torch.no_grad():
             for i, batch in enumerate(trainloader):
                 (_,data,label)=batch
-                data=data.cuda()
-                label=label.cuda()
+                data=data.to(self._device)
+                label=label.to(self._device)
                 embedding=model.convnet.encode_image(data, True)
                 embedding_list.append(embedding.cpu())
                 label_list.append(label.cpu())
@@ -55,7 +56,6 @@ class Learner(BaseLearner):
         label_list = torch.cat(label_list, dim=0)
 
         class_list=list(range(self._known_classes, self._total_classes))
-        proto_list = []
         for class_index in class_list:
             data_index=(label_list==class_index).nonzero().squeeze(-1)
             embedding=embedding_list[data_index]
@@ -73,7 +73,7 @@ class Learner(BaseLearner):
         
         logging.info("Learning on {}-{}".format(self._known_classes, self._total_classes))
         train_dataset = data_manager.get_dataset(np.arange(self._known_classes, self._total_classes),
-            source="train", mode="train",appendent=self._get_memory())
+            source="train", mode="train", appendent=self._get_memory())
         self.train_dataset=train_dataset
         self.data_manager=data_manager
         self._network.to(self._device)
@@ -81,10 +81,11 @@ class Learner(BaseLearner):
         self.train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=num_workers)
         test_dataset = data_manager.get_dataset(np.arange(0, self._total_classes), source="test", mode="test" )
         self.test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers)
-        train_dataset_for_protonet=data_manager.get_dataset(np.arange(self._known_classes, self._total_classes),source="train", mode="test", )
-        self.train_loader_for_protonet = DataLoader(train_dataset_for_protonet, batch_size=self.batch_size, shuffle=True, num_workers=num_workers)
 
-        train_dataset_for_protonet=data_manager.get_dataset(np.arange(self._known_classes, self._total_classes),source="train", mode="test", )
+     #   train_dataset_for_protonet = data_manager.get_dataset(np.arange(self._known_classes, self._total_classes), source="train", mode="test", )
+     #   self.train_loader_for_protonet = DataLoader(train_dataset_for_protonet, batch_size=self.batch_size, shuffle=True, num_workers=num_workers)
+
+        train_dataset_for_protonet=data_manager.get_dataset(np.arange(self._known_classes, self._total_classes),source="train", mode="test" )
         self.train_loader_for_protonet = DataLoader(train_dataset_for_protonet, batch_size=self.batch_size, shuffle=True, num_workers=num_workers)
 
         if len(self._multiple_gpus) > 1:
@@ -109,43 +110,46 @@ class Learner(BaseLearner):
         if self.args['optimizer']=='sgd':
             optimizer = optim.SGD(self._network.parameters(), momentum=0.9, lr=self.init_lr,weight_decay=self.weight_decay)
         elif self.args['optimizer']=='adam': 
-            optimizer=optim.AdamW(self._network.parameters(), lr=self.init_lr, weight_decay=self.weight_decay)
-        scheduler=optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args['tuned_epoch'], eta_min=self.min_lr)
+            optimizer = optim.AdamW(self._network.parameters(), lr=self.init_lr, weight_decay=self.weight_decay)
+        
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.args['tuned_epoch'], eta_min=self.min_lr)
 
+        class_to_label = self.data_manager._class_to_label
+        templates = self.data_manager._data_to_prompt[0]
+        prog_bar = tqdm(range(self.tuned_epoch))
+        cliploss = ClipLoss()
 
-        class_to_label=self.data_manager._class_to_label
-        templates=self.data_manager._data_to_prompt[0]
-        prog_bar =  tqdm(range(self.tuned_epoch))
-        cliploss=ClipLoss()
-
-        total_labels=class_to_label[:self._total_classes] # mask all known classes
+        total_labels = class_to_label[:self._total_classes] # mask all known classes
         for _, epoch in enumerate(prog_bar):
             self._network.train()
             losses = 0.0
             correct, total = 0, 0
             for i, (_, inputs, targets) in enumerate(train_loader):
-                labels=[class_to_label[y] for y in targets]
+                labels = [class_to_label[y] for y in targets]
                 inputs = inputs.to(self._device)
                 targets = targets.to(self._device)
                 
-                texts=[templates.format(inst) for inst in total_labels]
+                texts = [templates.format(inst) for inst in total_labels]
                 texts = self._network.tokenizer(texts).to(self._device)
-                text_features=self._network.encode_text(texts)
+                text_features = self._network.encode_text(texts) # [total_classes, dim]
                 text_feas = text_features / text_features.norm(dim=-1, keepdim=True)
-                image_features=self._network.encode_image(inputs)
-                img_feas = image_features / image_features.norm(dim=-1, keepdim=True)
+                image_features = self._network.encode_image(inputs)
+                img_feas = image_features / image_features.norm(dim=-1, keepdim=True) #[bs, dim]
                 image_features, text_features, logit_scale, proto_feas=self._network.forward_transformer(img_feas, text_feas,self._train_transformer)
-                logits=image_features@text_features.T
+                logits = image_features@text_features.T # [bs, allclasses]
 
                 texts=[templates.format(inst) for inst in labels]
-                clip_text_feas=self._network.encode_text(self._network.tokenizer(texts).to(self._device))
+                clip_text_feas=self._network.encode_text(self._network.tokenizer(texts).to(self._device))#total,dim
                 clip_text_norm=clip_text_feas.norm(dim=-1, keepdim=True)
                 clip_text_feas = clip_text_feas / clip_text_norm
-                clip_loss=cliploss(img_feas, clip_text_feas, logit_scale)
 
-                loss=F.cross_entropy(logits, targets)
-                protoloss=F.cross_entropy(image_features @ proto_feas.T, targets)
-                total_loss=loss+clip_loss+protoloss
+                clip_loss = cliploss(img_feas, clip_text_feas, logit_scale)
+
+                loss = F.cross_entropy(logits, targets)
+
+                protoloss = F.cross_entropy(image_features @ proto_feas.T, targets)
+
+                total_loss = loss+clip_loss+protoloss
 
                 optimizer.zero_grad()
                 total_loss.backward()
@@ -166,14 +170,14 @@ class Learner(BaseLearner):
 
     def _compute_accuracy(self, model, loader):
         self._network.eval()
-        class_to_label=self.data_manager._class_to_label
-        templates=self.data_manager._data_to_prompt
-        total_labels=class_to_label[:self._total_classes] # mask all known classes
+        class_to_label = self.data_manager._class_to_label
+        templates = self.data_manager._data_to_prompt
+        total_labels = class_to_label[:self._total_classes] # mask all known classes
         text_features = []
         with torch.no_grad():
             for l in total_labels:
                 texts = [t.format(l) for t in templates]
-                texts = self._network.tokenizer(texts).cuda()
+                texts = self._network.tokenizer(texts).to(self._device)
                 class_embeddings = self._network.encode_text(texts)
                 class_embeddings = class_embeddings / class_embeddings.norm(dim=-1, keepdim=True)
                 class_embeddings = class_embeddings.mean(dim=0)
@@ -201,14 +205,14 @@ class Learner(BaseLearner):
     def _eval_cnn(self, loader):
         
         self._network.eval()
-        class_to_label=self.data_manager._class_to_label
-        templates=self.data_manager._data_to_prompt
-        total_labels=class_to_label[:self._total_classes] # mask all known classes
+        class_to_label = self.data_manager._class_to_label
+        templates = self.data_manager._data_to_prompt
+        total_labels = class_to_label[:self._total_classes] # mask all known classes
         text_features = []
         with torch.no_grad():
             for l in total_labels:
                 texts = [t.format(l) for t in templates]
-                texts = self._network.tokenizer(texts).cuda()
+                texts = self._network.tokenizer(texts).to(self._device)
                 class_embeddings = self._network.encode_text(texts)
                 class_embeddings = class_embeddings / class_embeddings.norm(dim=-1, keepdim=True)
                 class_embeddings = class_embeddings.mean(dim=0)
@@ -222,14 +226,19 @@ class Learner(BaseLearner):
             with torch.no_grad():
                 image_features=self._network.encode_image(inputs)
                 transf_image_features, transf_text_features, _, proto_feas = self._network.forward_transformer(image_features, text_features,self._train_transformer)
+
                 outputs = transf_image_features @ transf_text_features.T
+
                 proto_outputs= transf_image_features @ proto_feas.T
-                # ensemble
+
                 original_outputs= image_features @ text_features.T
+
                 outputs = original_outputs+outputs+proto_outputs
 
-            predicts = torch.topk(  outputs, k=self.topk, dim=1, largest=True, sorted=True)[  1     ]  # [bs, topk]
+            predicts = torch.topk(outputs, k=self.topk, dim=1, largest=True, sorted=True)[1]  # [bs, topk]
             y_pred.append(predicts.cpu().numpy())
             y_true.append(targets.cpu().numpy())
 
         return np.concatenate(y_pred), np.concatenate(y_true)  # [N, topk]
+
+
