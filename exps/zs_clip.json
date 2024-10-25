@@ -1,8 +1,8 @@
 {
     "prefix": "reproduce",
     "dataset": "cifar224",
-    "memory_size": 2000,
-    "memory_per_class": 20,
+    "memory_size": 0,
+    "memory_per_class": 0,
     "fixed_memory": false,
     "shuffle": true,
     "init_cls": 10,
