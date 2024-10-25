@@ -1,0 +1,15 @@
+{
+    "prefix": "reproduce",
+    "dataset": "cifar224",
+    "memory_size": 2000,
+    "memory_per_class": 20,
+    "fixed_memory": false,
+    "shuffle": true,
+    "init_cls": 10,
+    "increment": 10,
+    "model_name": "zs_clip",
+    "convnet_type": "clip",
+    "device": ["0"],
+    "seed": [1993]
+}
+
