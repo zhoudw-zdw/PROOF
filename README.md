@@ -45,6 +45,8 @@ The code repository for "[Learning without Forgetting for Vision-Language Models
 
 # 📢 **Updates**
 
+[02/2025] Accepted to TPAMI.
+
 [10/2024] Code has been released.
 
 [05/2023] [arXiv](https://arxiv.org/abs/2305.19270v1) paper has been released.
