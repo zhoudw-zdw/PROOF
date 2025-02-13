@@ -6,7 +6,7 @@
     <div>
         <a href='http://www.lamda.nju.edu.cn/zhoudw' target='_blank'>Da-Wei Zhou</a><sup>1</sup>&emsp;
         <a href='https://zhangyuanhan-ai.github.io/' target='_blank'>Yuanhan Zhang</a><sup>2</sup>&emsp;
-        <a href=' ' target='_blank'>Yan Wang</a><sup>1</sup>&emsp;
+        Yan Wang<sup>1</sup>&emsp;
         <a href='https://jingyinju.github.io/' target='_blank'>Jingyi Ning</a><sup>1</sup>&emsp;
         <a href='http://www.lamda.nju.edu.cn/yehj' target='_blank'>Han-Jia Ye</a><sup>1</sup>&emsp;
         <a href='http://www.lamda.nju.edu.cn/zhandc' target='_blank'>De-Chuan Zhan</a><sup>1</sup>&emsp;
@@ -23,14 +23,16 @@
 
 <div align="center">
   <img src="https://visitor-badge.laobi.icu/badge?page_id=zhoudw-zdw.Proof&left_color=yellow&right_color=purple" alt="visitors">
-  <a href="https://arxiv.org/abs/2305.19270v1">
-    <img src="https://img.shields.io/badge/arXiv-2305.19270-red?logo=arxiv&logoColor=red" alt="arXiv">
+  <a href="https://arxiv.org/abs/2305.19270">
+    <img src="https://img.shields.io/badge/TPAMI2025-red" alt="arXiv">
   </a>
+
+  
 </div>
 
 
 
-The code repository for "[Learning without Forgetting for Vision-Language Models](https://arxiv.org/abs/2305.19270v1)"  in PyTorch.  If you use any content of this repo for your work, please cite the following bib entry: 
+The code repository for "[Learning without Forgetting for Vision-Language Models](https://arxiv.org/abs/2305.19270v1) (**TPAMI 2025**)"  in PyTorch.  If you use any content of this repo for your work, please cite the following bib entry: 
 
 ```bibtex
 @article{zhou2025learning,
