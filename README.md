@@ -33,11 +33,11 @@
 The code repository for "[Learning without Forgetting for Vision-Language Models](https://arxiv.org/abs/2305.19270v1)"  in PyTorch.  If you use any content of this repo for your work, please cite the following bib entry: 
 
 ```bibtex
-@article{zhou2023learning,
+@article{zhou2025learning,
   title={Learning without Forgetting for Vision-Language Models},
-  author={Da-Wei Zhou and Yuanhan Zhang and Jingyi Ning and Han-Jia Ye and De-Chuan Zhan and Ziwei Liu},
-  journal={arXiv preprint arXiv:2305.19270},
-  year={2023}
+  author={Da-Wei Zhou and Yuanhan Zhang and Yan Wang and Jingyi Ning and Han-Jia Ye and De-Chuan Zhan and Ziwei Liu},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year={2025}
 }
 ```
 
