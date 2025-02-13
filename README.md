@@ -32,7 +32,7 @@
 
 
 
-The code repository for "[Learning without Forgetting for Vision-Language Models](https://arxiv.org/abs/2305.19270v1) (**TPAMI 2025**)"  in PyTorch.  If you use any content of this repo for your work, please cite the following bib entry: 
+The code repository for "[Learning without Forgetting for Vision-Language Models](https://arxiv.org/abs/2305.19270) (**TPAMI 2025**)"  in PyTorch.  If you use any content of this repo for your work, please cite the following bib entry: 
 
 ```bibtex
 @article{zhou2025learning,
